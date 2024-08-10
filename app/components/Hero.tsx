@@ -1,12 +1,12 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 export default function Hero() {
   const router = useRouter();
 
   const handleCheckoutClick = () => {
-    router.push('/checkout');
+    router.push("/checkout");
   };
 
   return (
@@ -14,14 +14,14 @@ export default function Hero() {
       className="min-h-screen flex flex-col justify-center items-center text-center bg-cover bg-center bg-fixed p-4"
       style={{ backgroundImage: 'url("/hero.jpg")' }}
     >
-      <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg">
-        <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-bold mb-4 text-white">
+      <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg max-w-4xl mx-auto">
+        <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-4xl font-bold mb-4 text-white">
           Participe do Congresso Louvor 2024
         </h2>
         <p className="text-base sm:text-lg md:text-xl mb-8 text-gray-300">
           Venha participar de um evento incrível onde a música, adoração e
-          ensinamentos se encontram para proporcionar uma experiência única
-          de louvor e crescimento espiritual.
+          ensinamentos se encontram para proporcionar uma experiência única de
+          louvor e crescimento espiritual.
         </p>
         <button
           onClick={handleCheckoutClick}
