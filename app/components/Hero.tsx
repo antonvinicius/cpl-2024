@@ -1,6 +1,15 @@
+"use client";
+
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Hero() {
+  const router = useRouter();
+
+  const handlePurchaseClick = () => {
+    router.push('/checkout');
+  };
+
   return (
     <section className="container mx-auto flex flex-col-reverse md:flex-row items-center py-16 px-4 md:px-8">
       <div className="md:w-1/2 text-center md:text-left mt-8 md:mt-0 md:mr-10">
@@ -12,12 +21,12 @@ export default function Hero() {
           ensinamentos se encontram para proporcionar uma experiência única
           de louvor e crescimento espiritual.
         </p>
-        <a
-          href="#ingresso"
+        <button
+          onClick={handlePurchaseClick}
           className="bg-green-600 hover:bg-green-700 text-sm md:text-base font-bold py-3 px-6 rounded inline-block"
         >
           Quero comprar meu ingresso
-        </a>
+        </button>
       </div>
       <div className="md:w-1/2 flex justify-center mt-8 md:mt-0">
         <img
