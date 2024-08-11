@@ -1,6 +1,8 @@
 "use client";
 
+import React from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function Hero() {
   const router = useRouter();
@@ -14,7 +16,12 @@ export default function Hero() {
       className="min-h-screen flex flex-col justify-center items-center text-center bg-cover bg-center bg-fixed p-4"
       style={{ backgroundImage: 'url("/hero.jpg")' }}
     >
-      <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg max-w-4xl mx-auto">
+      <motion.div
+        className="bg-gray-900 bg-opacity-50 p-6 rounded-lg max-w-4xl mx-auto"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }} // Duração reduzida para 0.5 segundos
+      >
         <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-4xl font-bold mb-4 text-white">
           Participe do Congresso Louvor 2024
         </h2>
@@ -29,7 +36,7 @@ export default function Hero() {
         >
           Quero comprar meu ingresso
         </button>
-      </div>
+      </motion.div>
     </section>
   );
 }
