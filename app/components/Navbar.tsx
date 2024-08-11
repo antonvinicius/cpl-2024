@@ -21,7 +21,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-green-600 text-white p-4">
+    <nav className="bg-green-600 bg-opacity-80 backdrop-blur-md text-white p-4">
       <div className="container mx-auto flex justify-between items-center">
         <h1 className="text-lg md:text-2xl font-bold truncate">
           Congresso Louvor 2024
