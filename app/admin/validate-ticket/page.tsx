@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "../components/AdminLayout";
-import dynamic from "next/dynamic";
-
-// Carrega o componente sem SSR (Server-Side Rendering)
-const QrScanner = dynamic(() => import("react-qr-scanner"), { ssr: false });
+import QrReader from "react-qr-scanner";
 
 export default function ValidateTicketPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -65,7 +62,8 @@ export default function ValidateTicketPage() {
         )}
         {cameraStarted && (
           <div className="w-full h-screen">
-            <QrScanner
+            <QrReader
+              delay={300}
               onError={handleError}
               onScan={handleScan}
               style={{ width: "100%", height: "100%" }}
