@@ -66,7 +66,6 @@ export default function ValidateTicketPage() {
         {cameraStarted && (
           <div className="w-full h-screen">
             <QrScanner
-              delay={300}
               onError={handleError}
               onScan={handleScan}
               style={{ width: "100%", height: "100%" }}
@@ -78,9 +77,7 @@ export default function ValidateTicketPage() {
             />
           </div>
         )}
-        {errorMessage && (
-          <p className="text-red-500 mt-4">{errorMessage}</p>
-        )}
+        {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
         {qrResult && (
           <>
             <p className="text-green-500 mt-4">QR Code lido: {qrResult}</p>
