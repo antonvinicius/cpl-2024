@@ -39,6 +39,13 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           <TicketIcon className="h-5 w-5 text-white mr-3" />
           <span>Ingressos</span>
         </button>
+        <button
+          onClick={() => handleNavigation("/admin/validate-ticket")}
+          className="flex items-center p-2 rounded bg-gray-700 hover:bg-gray-600 w-full text-left"
+        >
+          <TicketIcon className="h-5 w-5 text-white mr-3" />
+          <span>Validar Ingresso</span>
+        </button>
       </nav>
       <div className="mt-8">
         <button
