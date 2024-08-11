@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "../components/AdminLayout";
-import LoginPage from "../LoginPage";
 import dynamic from "next/dynamic";
 
 // Carrega o componente sem SSR (Server-Side Rendering)
@@ -21,9 +20,9 @@ export default function ValidateTicketPage() {
     if (user === "admin") {
       setIsLoggedIn(true);
     } else {
-      setIsLoggedIn(false);
+      router.push("/admin/login"); // Redireciona para a página de login se não estiver autenticado
     }
-  }, []);
+  }, [router]);
 
   const handleStartCamera = () => {
     setCameraStarted(true);
@@ -49,7 +48,7 @@ export default function ValidateTicketPage() {
   };
 
   if (!isLoggedIn) {
-    return <LoginPage />;
+    return null; // Ou pode exibir um carregamento
   }
 
   return (

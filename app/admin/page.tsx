@@ -4,24 +4,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "./components/AdminLayout";
 import TicketList from "./components/TicketList";
-import LoginPage from "./LoginPage";
 
 export default function TicketsPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Lógica fictícia de autenticação
-    const user = localStorage.getItem("user"); // Aqui, pode ser usada qualquer lógica de verificação de login
+    const user = localStorage.getItem("user");
     if (user === "admin") {
       setIsLoggedIn(true);
     } else {
-      setIsLoggedIn(false);
+      router.push("/admin/login"); // Redireciona para a página de login se não estiver autenticado
     }
-  }, []);
+  }, [router]);
 
   if (!isLoggedIn) {
-    return <LoginPage />;
+    return null; // Ou pode exibir um carregamento
   }
 
   return (
