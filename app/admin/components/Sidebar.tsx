@@ -1,7 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { HomeIcon, TicketIcon, ArrowLeftCircleIcon } from "@heroicons/react/24/solid";
+import {
+  HomeIcon,
+  TicketIcon,
+  ArrowLeftCircleIcon,
+} from "@heroicons/react/24/solid";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   const router = useRouter();
@@ -13,6 +17,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
   const handleLogout = () => {
     toggleSidebar(); // Fecha a sidebar ao sair
+    localStorage.setItem("user", "");
     router.push("/"); // Redireciona para a página principal
   };
 
