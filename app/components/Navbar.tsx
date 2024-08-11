@@ -12,6 +12,10 @@ export default function Navbar() {
     router.push("/checkout");
   };
 
+  const handleViewTicketsClick = () => {
+    router.push("/my-tickets");
+  };
+
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
@@ -31,12 +35,18 @@ export default function Navbar() {
             )}
           </button>
         </div>
-        <div className={`hidden md:flex md:items-center`}>
+        <div className={`hidden md:flex md:items-center space-x-4`}>
           <button
             onClick={handlePurchaseClick}
             className="bg-orange-500 hover:bg-orange-600 text-xs md:text-sm lg:text-base font-bold py-2 px-3 lg:px-4 rounded whitespace-nowrap"
           >
-            Quero comprar meu ingresso
+            Comprar Ingresso
+          </button>
+          <button
+            onClick={handleViewTicketsClick}
+            className="bg-green-700 hover:bg-green-500 text-xs md:text-sm lg:text-base font-bold py-2 px-3 lg:px-4 rounded whitespace-nowrap"
+          >
+            Ver Meus Ingressos
           </button>
         </div>
       </div>
@@ -50,9 +60,14 @@ export default function Navbar() {
             onClick={handlePurchaseClick}
             className="w-full mt-2 text-center bg-orange-500 hover:bg-orange-600 text-xs md:text-sm lg:text-base font-bold py-2 px-3 lg:px-4 rounded whitespace-nowrap"
           >
-            Quero comprar meu ingresso
+            Comprar Ingresso
           </button>
-          {/* Adicione outros itens de menu aqui se houver */}
+          <button
+            onClick={handleViewTicketsClick}
+            className="w-full mt-2 text-center bg-green-700 hover:bg-green-500 text-xs md:text-sm lg:text-base font-bold py-2 px-3 lg:px-4 rounded whitespace-nowrap"
+          >
+            Ver Meus Ingressos
+          </button>
         </div>
       </div>
     </nav>
