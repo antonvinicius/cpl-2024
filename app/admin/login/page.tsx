@@ -15,18 +15,31 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false); // Estado de loading
   const router = useRouter();
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username === "admin" && password === "admin") {
-      localStorage.setItem("user", "admin");
-      router.push("/admin"); // Redireciona para a página de administração
-    } else {
-      toast.error("Usuário ou senha inválidos", {
-        position: "top-center",
-      });
-    }
+    setLoading(true); // Ativa o loading
+
+    // Simulação de requisição com delay fictício
+    setTimeout(() => {
+      setLoading(false); // Desativa o loading
+
+      if (username === "admin" && password === "admin") {
+        toast.success("Login realizado com sucesso! Redirecionando...", {
+          position: "top-center",
+        });
+        setTimeout(() => {
+          localStorage.setItem("user", "admin");
+          router.push("/admin"); // Redireciona para a página de administração
+        }, 2000); // Redireciona após 2 segundos
+      } else {
+        toast.error("Usuário ou senha inválidos", {
+          position: "top-center",
+        });
+      }
+    }, 2000); // Delay fictício de 2 segundos para simular a requisição
   };
 
   const togglePasswordVisibility = () => {
@@ -54,6 +67,7 @@ export default function LoginPage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading} // Desabilita o campo durante o loading
             />
           </div>
           <div className="relative">
@@ -64,11 +78,13 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-10 py-2 rounded bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading} // Desabilita o campo durante o loading
             />
             <button
               type="button"
               onClick={togglePasswordVisibility}
               className="absolute right-3 top-3 text-gray-400 hover:text-gray-200"
+              disabled={loading} // Desabilita o botão de toggle durante o loading
             >
               {showPassword ? (
                 <EyeSlashIcon className="h-5 w-5" />
@@ -79,9 +95,36 @@ export default function LoginPage() {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold flex justify-center items-center"
+            disabled={loading} // Desabilita o botão durante o loading
           >
-            Entrar
+            {loading ? (
+              <div className="flex gap-0.5 items-center justify-center">
+                <svg
+                  className="animate-spin h-5 w-5 mr-3 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  ></path>
+                </svg>
+                <span>Entrar</span>
+              </div>
+            ) : (
+              "Entrar"
+            )}
           </button>
         </form>
       </div>
