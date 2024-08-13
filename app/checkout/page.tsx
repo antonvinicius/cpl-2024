@@ -2,10 +2,13 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import heroImage from "/public/hero.jpg";
+import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+const EXPIRATION_PIX_TIME = 10;
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -26,6 +29,29 @@ export default function CheckoutPage() {
     church: "",
   });
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(3600); // 60 minutos em segundos
+  const [transactionData, setTransactionData] = useState<{
+    qr_code_base64: string;
+    qr_code: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (timeLeft > 0 && isModalOpen) {
+      const timerId = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timerId);
+    } else if (timeLeft === 0 && isModalOpen) {
+      handleCloseModal();
+      toast.error(
+        "O tempo para pagamento expirou. Por favor, gere um novo PIX.",
+        {
+          position: "top-center",
+        },
+      );
+    }
+  }, [timeLeft, isModalOpen]);
+
   const handleCancelClick = () => {
     router.push("/");
   };
@@ -39,9 +65,7 @@ export default function CheckoutPage() {
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    // Remove tudo que não é dígito
     const cleanValue = value.replace(/\D/g, "");
-    // Adiciona a máscara
     const maskedValue = cleanValue
       .replace(/(\d{3})(\d)/, "$1.$2")
       .replace(/(\d{3})(\d)/, "$1.$2")
@@ -55,7 +79,6 @@ export default function CheckoutPage() {
 
     if (cleanCpf.length !== 11) return false;
 
-    // Verifica se todos os dígitos são iguais
     if (/^(\d)\1+$/.test(cleanCpf)) return false;
 
     const calculateDigit = (cpf: string, factor: number) => {
@@ -84,14 +107,12 @@ export default function CheckoutPage() {
       church: "",
     };
 
-    // Validação do nome
     if (!formData.name) {
       newErrors.name = "Campo obrigatório";
     } else if (formData.name.split(" ").length < 2) {
       newErrors.name = "Você deve informar um sobrenome";
     }
 
-    // Validação do email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
       newErrors.email = "Campo obrigatório";
@@ -99,28 +120,24 @@ export default function CheckoutPage() {
       newErrors.email = "Email inválido";
     }
 
-    // Validação do CPF
     if (!formData.cpf) {
       newErrors.cpf = "Campo obrigatório";
     } else if (!validateCPF(formData.cpf)) {
       newErrors.cpf = "CPF inválido";
     }
 
-    // Validação da data de nascimento
     if (!formData.dob) {
       newErrors.dob = "Campo obrigatório";
     } else if (isNaN(Date.parse(formData.dob))) {
       newErrors.dob = "Data de nascimento inválida";
     }
 
-    // Validação da igreja
     if (!formData.church) {
       newErrors.church = "Selecione uma igreja";
     }
 
     setErrors(newErrors);
 
-    // Verifica se há algum erro
     return Object.values(newErrors).every((error) => error === "");
   };
 
@@ -128,26 +145,60 @@ export default function CheckoutPage() {
     e.preventDefault();
 
     if (validateForm()) {
-      // Se o formulário for válido, prossiga com o envio
-      toast.success("Campos validados com sucesso!", {
-        position: "top-center",
-      });
+      setIsLoading(true);
+
+      // Simulação de chamada à API
+      setTimeout(() => {
+        const mockTransactionData = {
+          qr_code_base64:
+            "iVBORw0KGgoAAAANSUhEUgAABRQAAAUUCAYAAACu5p7oAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAIABJREFUeJzs2luO3LiWQNFmI+Y/Zd6vRt36KGNXi7ZOBtcagHD4kNLeiLX33v8DAAAAABD879sDAAAAAAA/h6AIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCAAAAAJmgCAAAAABkgiIAAAAAkAmKAAAAAEAmKAIAAAAAmaAIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCAAAAAJmgCAAAAABkgiIAAAAAkAmKAAAAAEAmKAIAAAAAmaAIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCA...",
+          qr_code:
+            "00020126600014br.gov.bcb.pix0117john@yourdomain.com0217additional data520400005303986540510.005802BR5913Maria Silva6008Brasilia62070503***6304E2CA",
+        };
+
+        setTransactionData(mockTransactionData);
+        setIsModalOpen(true);
+        setTimeLeft(EXPIRATION_PIX_TIME); // Resetar o timer para 60 minutos
+        toast.success("Campos validados com sucesso!", {
+          position: "top-center",
+        });
+
+        setIsLoading(false);
+      }, 2000); // Simulação de um delay de 2 segundos
     } else {
-      // Caso contrário, exiba os erros
       toast.error("Por favor, corrija os erros no formulário", {
         position: "top-center",
       });
     }
   };
 
+  const handleCopyToClipboard = () => {
+    if (transactionData?.qr_code) {
+      navigator.clipboard.writeText(transactionData.qr_code);
+      toast.success("Código copiado para a área de transferência!", {
+        position: "top-center",
+      });
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
   return (
     <>
       <div className="relative min-h-screen flex justify-center items-center py-12 px-4 overflow-hidden">
-        {/* Fundo animado com tema dark e leves toques de verde */}
         <div className="absolute inset-0 bg-gradient-to-r from-gray-800 via-gray-900 to-green-800 animate-gradientMove z-0"></div>
-        <div className="relative z-10 text-white flex justify-center items-center ">
+        <div className="relative z-10 text-white flex justify-center items-center">
           <div className="bg-gray-800 rounded-lg shadow-lg overflow-hidden w-full max-w-5xl flex flex-col md:flex-row">
-            {/* Product Details Section */}
             <div className="w-full md:w-1/2 p-6 flex flex-col justify-between">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold mb-4">
@@ -171,7 +222,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Payment Details Section */}
             <div className="w-full md:w-1/2 bg-gray-900 p-6">
               <h2 className="text-xl font-bold mb-6">Detalhes do Pagamento</h2>
               <form onSubmit={handleSubmit}>
@@ -273,7 +323,33 @@ export default function CheckoutPage() {
                   type="submit"
                   className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mb-4"
                 >
-                  Finalizar Pagamento
+                  {isLoading ? (
+                    <div className="flex justify-center items-center">
+                      <svg
+                        className="animate-spin mr-2 h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8h8a8 8 0 11-8 8V12H4z"
+                        ></path>
+                      </svg>
+                      Processando...
+                    </div>
+                  ) : (
+                    "Finalizar Pagamento"
+                  )}
                 </button>
 
                 <button
@@ -288,6 +364,50 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {isModalOpen && transactionData && (
+        <motion.div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div
+            className={`bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-lg text-center transform transition-opacity duration-1000 ${isModalOpen ? "opacity-100" : "opacity-0"}`}
+          >
+            <h2 className="text-2xl font-bold mb-4">Finalize seu pagamento</h2>
+            <p className="mb-4">
+              Termine de pagar seu ingresso pagando com pix escaneando o QR Code
+              ou clique no botão para pagar com copia e cola
+            </p>
+            <div className="mb-4">
+              <Image
+                src={`/qr-code.png`}
+                alt="QR Code"
+                width={200}
+                height={200}
+                className="mx-auto"
+              />
+            </div>
+            <button
+              onClick={handleCopyToClipboard}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg mb-4"
+            >
+              Pagar com Copia e Cola
+            </button>
+            <p className="text-red-600 font-bold mb-4">
+              Tempo restante: {formatTime(timeLeft)}
+            </p>
+            <button
+              className="text-gray-600 hover:text-gray-800"
+              onClick={handleCloseModal}
+            >
+              Fechar
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       <ToastContainer />
     </>
   );
