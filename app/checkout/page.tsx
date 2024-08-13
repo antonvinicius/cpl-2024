@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import heroImage from "/public/hero.jpg";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const EXPIRATION_PIX_TIME = 10;
+const EXPIRATION_PIX_TIME = 3600; // 60 minutos em segundos
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -31,26 +31,47 @@ export default function CheckoutPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(3600); // 60 minutos em segundos
+  const [timeLeft, setTimeLeft] = useState(EXPIRATION_PIX_TIME);
   const [transactionData, setTransactionData] = useState<{
     qr_code_base64: string;
     qr_code: string;
   } | null>(null);
 
+  const timerRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+
   useEffect(() => {
-    if (timeLeft > 0 && isModalOpen) {
-      const timerId = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timerId);
-    } else if (timeLeft === 0 && isModalOpen) {
-      handleCloseModal();
-      toast.error(
-        "O tempo para pagamento expirou. Por favor, gere um novo PIX.",
-        {
-          position: "top-center",
-        },
-      );
+    if (isModalOpen) {
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+      }
+
+      const calculateTimeLeft = () => {
+        const elapsedTime = Math.floor(
+          (Date.now() - startTimeRef.current!) / 1000,
+        );
+        setTimeLeft(EXPIRATION_PIX_TIME - elapsedTime);
+
+        if (EXPIRATION_PIX_TIME - elapsedTime <= 0) {
+          handleCloseModal();
+          toast.error(
+            "O tempo para pagamento expirou. Por favor, gere um novo PIX.",
+            {
+              position: "top-center",
+            },
+          );
+        }
+      };
+
+      timerRef.current = window.setInterval(calculateTimeLeft, 1000);
+
+      return () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+      };
     }
-  }, [timeLeft, isModalOpen]);
+  }, [isModalOpen]);
 
   const handleCancelClick = () => {
     router.push("/");
@@ -151,7 +172,7 @@ export default function CheckoutPage() {
       setTimeout(() => {
         const mockTransactionData = {
           qr_code_base64:
-            "iVBORw0KGgoAAAANSUhEUgAABRQAAAUUCAYAAACu5p7oAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAIABJREFUeJzs2luO3LiWQNFmI+Y/Zd6vRt36KGNXi7ZOBtcagHD4kNLeiLX33v8DAAAAABD879sDAAAAAAA/h6AIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCAAAAAJmgCAAAAABkgiIAAAAAkAmKAAAAAEAmKAIAAAAAmaAIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCAAAAAJmgCAAAAABkgiIAAAAAkAmKAAAAAEAmKAIAAAAAmaAIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCA...",
+            "iVBORw0KGgoAAAANSUhEUgAABRQAAAUUCAYAAACu5p7oAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAIABJREFUeJzs2luO3LiWQNFmI+Y/Zd6vRt36KGNXi7ZOBtcagHD4kNLeiLX33v8DAAAAABD879sDAAAAAAA/h6AIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCAAAAAJmgCAAAAABkgiIAAAAAkAmKAAAAAEAmKAIAAAAAmaAIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCA...",
           qr_code:
             "00020126600014br.gov.bcb.pix0117john@yourdomain.com0217additional data520400005303986540510.005802BR5913Maria Silva6008Brasilia62070503***6304E2CA",
         };
@@ -183,6 +204,10 @@ export default function CheckoutPage() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    startTimeRef.current = null;
   };
 
   const formatTime = (seconds: number) => {
