@@ -11,11 +11,13 @@
   "dependencies": {
     "@heroicons/react": "^2.1.5",
     "framer-motion": "^11.3.24",
+    "mercadopago": "^2.0.11",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
     "react-qr-scanner": "^1.0.0-alpha.11",
-    "react-toastify": "^10.0.5"
+    "react-toastify": "^10.0.5",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -162,30 +162,39 @@ export default function CheckoutPage() {
     return Object.values(newErrors).every((error) => error === "");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (validateForm()) {
       setIsLoading(true);
-
-      // Simulação de chamada à API
-      setTimeout(() => {
-        const mockTransactionData = {
-          qr_code_base64:
-            "iVBORw0KGgoAAAANSUhEUgAABRQAAAUUCAYAAACu5p7oAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAIABJREFUeJzs2luO3LiWQNFmI+Y/Zd6vRt36KGNXi7ZOBtcagHD4kNLeiLX33v8DAAAAABD879sDAAAAAAA/h6AIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCAAAAAJmgCAAAAABkgiIAAAAAkAmKAAAAAEAmKAIAAAAAmaAIAAAAAGSCIgAAAACQCYoAAAAAQCYoAgAAAACZoAgAAAAAZIIiAAAAAJAJigAAAABAJigCA...",
-          qr_code:
-            "00020126600014br.gov.bcb.pix0117john@yourdomain.com0217additional data520400005303986540510.005802BR5913Maria Silva6008Brasilia62070503***6304E2CA",
-        };
-
-        setTransactionData(mockTransactionData);
-        setIsModalOpen(true);
-        setTimeLeft(EXPIRATION_PIX_TIME); // Resetar o timer para 60 minutos
-        toast.success("Campos validados com sucesso!", {
-          position: "top-center",
+      try {
+        const response = await fetch("/api/payment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
         });
 
+        if (!response.ok) {
+          throw new Error("Erro ao processar pagamento");
+        }
+
+        const data = await response.json();
+        setTransactionData(data);
+        setIsModalOpen(true);
+        setTimeLeft(EXPIRATION_PIX_TIME);
+        toast.success("Pagamento gerado com sucesso!", {
+          position: "top-center",
+        });
+      } catch (error) {
+        console.error("Erro ao processar pagamento:", error);
+        toast.error("Ocorreu um erro ao processar o pagamento", {
+          position: "top-center",
+        });
+      } finally {
         setIsLoading(false);
-      }, 2000); // Simulação de um delay de 2 segundos
+      }
     } else {
       toast.error("Por favor, corrija os erros no formulário", {
         position: "top-center",
@@ -407,7 +416,7 @@ export default function CheckoutPage() {
             </p>
             <div className="mb-4">
               <Image
-                src={`/qr-code.png`}
+                src={`data:image/png;base64,${transactionData.qr_code_base64}`}
                 alt="QR Code"
                 width={200}
                 height={200}
