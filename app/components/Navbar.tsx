@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
+import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -21,11 +23,21 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-green-600 bg-opacity-80 backdrop-blur-md text-white p-4">
+    <motion.nav
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="fixed top-0 left-0 w-full bg-green-700 bg-opacity-30 backdrop-blur-md text-white p-2 md:p-3 lg:p-4 z-50"
+    >
       <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-lg md:text-2xl font-bold truncate">
-          Congresso Louvor 2024
-        </h1>
+        <div className="cursor-pointer hover:opacity-80 transition duration-300">
+          <Image
+            src="/logo.png"
+            alt="Congresso Louvor 2024"
+            width={130} // Ajuste o tamanho da logo para ser menor em dispositivos móveis
+            height={40} // Ajuste o tamanho da logo para ser menor em dispositivos móveis
+          />
+        </div>
         <div className="flex-shrink-0 md:hidden">
           <button onClick={toggleMenu} className="focus:outline-none">
             {menuOpen ? (
@@ -36,40 +48,48 @@ export default function Navbar() {
           </button>
         </div>
         <div className={`hidden md:flex md:items-center space-x-4`}>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handlePurchaseClick}
-            className="bg-orange-500 hover:bg-orange-600 text-xs md:text-sm lg:text-base font-bold py-2 px-3 lg:px-4 rounded whitespace-nowrap"
+            className="bg-orange-500 hover:bg-orange-600 text-xs md:text-sm lg:text-base font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300"
           >
             Comprar Ingresso
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleViewTicketsClick}
-            className="bg-green-700 hover:bg-green-500 text-xs md:text-sm lg:text-base font-bold py-2 px-3 lg:px-4 rounded whitespace-nowrap"
+            className="bg-teal-600 hover:bg-teal-700 text-xs md:text-sm lg:text-base font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300"
           >
             Ver Meus Ingressos
-          </button>
+          </motion.button>
         </div>
       </div>
-      <div
-        className={`overflow-hidden transition-[max-height] duration-500 ease-in-out md:hidden ${
-          menuOpen ? "max-h-40" : "max-h-0"
-        }`}
+      <motion.div
+        initial={false}
+        animate={{ maxHeight: menuOpen ? "160px" : "0px" }}
+        className="overflow-hidden transition-[max-height] duration-500 ease-in-out md:hidden"
       >
-        <div className="flex flex-col items-start space-y-2">
-          <button
+        <div className="flex flex-col items-start space-y-2 mt-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handlePurchaseClick}
-            className="w-full mt-2 text-center bg-orange-500 hover:bg-orange-600 text-xs md:text-sm lg:text-base font-bold py-2 px-3 lg:px-4 rounded whitespace-nowrap"
+            className="w-full text-center bg-orange-500 hover:bg-orange-600 text-xs md:text-sm lg:text-base font-bold py-2 px-4 rounded-full shadow-lg transition-all duration-300"
           >
             Comprar Ingresso
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleViewTicketsClick}
-            className="w-full mt-2 text-center bg-green-700 hover:bg-green-500 text-xs md:text-sm lg:text-base font-bold py-2 px-3 lg:px-4 rounded whitespace-nowrap"
+            className="w-full text-center bg-teal-600 hover:bg-teal-700 text-xs md:text-sm lg:text-base font-bold py-2 px-4 rounded-full shadow-lg transition-all duration-300"
           >
             Ver Meus Ingressos
-          </button>
+          </motion.button>
         </div>
-      </div>
-    </nav>
+      </motion.div>
+    </motion.nav>
   );
 }

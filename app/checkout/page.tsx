@@ -31,6 +31,7 @@ export default function CheckoutPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingTotal, setIsLoadingTotal] = useState(false); // Novo estado para controlar o loading no total
   const [timeLeft, setTimeLeft] = useState(EXPIRATION_PIX_TIME);
   const [transactionData, setTransactionData] = useState<{
     qr_code_base64: string;
@@ -82,6 +83,21 @@ export default function CheckoutPage() {
   ) => {
     const { id, value } = e.target;
     setFormData({ ...formData, [id]: value });
+
+    if (id === "church") {
+      if (!value) return;
+
+      // Quando o dropdown da igreja mudar, iniciar o loading do total
+      setIsLoadingTotal(true);
+
+      // Simular uma requisição assíncrona com setTimeout
+      setTimeout(() => {
+        setIsLoadingTotal(false); // Finaliza o loading após 2 segundos
+        toast.success("Valores atualizados com sucesso!", {
+          position: "top-center",
+        });
+      }, 2000);
+    }
   };
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,11 +265,6 @@ export default function CheckoutPage() {
                   louvor e crescimento espiritual.
                 </p>
               </div>
-              <div>
-                <p className="text-xl font-bold text-gray-100">
-                  Total: R$ 99,00
-                </p>
-              </div>
             </div>
 
             <div className="w-full md:w-1/2 bg-gray-900 p-6">
@@ -353,7 +364,44 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
+                <div className="mb-6 p-4 rounded bg-gray-700">
+                  {isLoadingTotal ? (
+                    <div className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8h8a8 8 0 11-8 8V12H4z"
+                        ></path>
+                      </svg>
+                      <span className="ml-2">Atualizando valores...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-gray-400">Subtotal: R$ 45,00</p>
+                      <p className="text-gray-400">Desconto: -R$ 10,00</p>
+                      <p className="text-xl font-bold text-white">
+                        Total: R$ 40,00
+                      </p>
+                    </>
+                  )}
+                </div>
+
                 <button
+                  disabled={isLoadingTotal || isLoading}
                   type="submit"
                   className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mb-4"
                 >

@@ -13,14 +13,14 @@ export default function Hero() {
 
   return (
     <section
-      className="min-h-screen flex flex-col justify-center items-center text-center bg-cover bg-center bg-fixed p-4"
-      style={{ backgroundImage: 'url("/hero.jpg")' }}
+      className="relative min-h-screen flex flex-col justify-center items-center text-center bg-cover bg-center bg-fixed p-4"
+      style={{ backgroundImage: 'url("/hero.jpg")', marginTop: "-80px" }}
     >
       <motion.div
-        className="bg-gray-900 bg-opacity-50 p-6 rounded-lg max-w-4xl mx-auto"
+        className="bg-gray-900 bg-opacity-60 p-6 rounded-lg max-w-4xl mx-auto"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }} // Duração reduzida para 0.5 segundos
+        transition={{ duration: 1 }}
       >
         <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-4xl font-bold mb-4 text-white">
           Participe do Congresso Louvor 2024
