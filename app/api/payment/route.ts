@@ -31,28 +31,50 @@ export async function POST(req: Request) {
     });
     const payment = new Payment(client);
 
-    const now = moment.utc();
-    const expirationDate = now.add(1, "minute");
-    const formattedExpirationDate = expirationDate.format(
+    const currentDate = moment().utc().add(15, "minute");
+
+    const formattedExpirationDate = currentDate.format(
       "YYYY-MM-DDTHH:mm:ss.SSSZ",
     );
 
+    const nameParts = name.split(" ");
+    const first_name = nameParts[0];
+    const last_name = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+    const cpfClean = cpf.replace(/\./g, "").replace(/-/g, "");
+    const amount = 0.03;
+
     const body: PaymentCreateRequest = {
-      transaction_amount: 0.05,
+      transaction_amount: amount,
       description: `Ingresso de ${name} para Congresso Louvor 2024`,
       payment_method_id: "pix",
-      payer: {
-        email: email,
-        identification: {
-          type: "CPF",
-          number: cpf,
-        },
-        first_name: name.split(" ")[0],
-        last_name: name.split(" ")[1],
-      },
       notification_url: process.env.NOTIFICATION_URL_WEBHOOK,
-      // date_of_expiration: formattedExpirationDate,
-      external_reference: "ID_REF",
+      date_of_expiration: formattedExpirationDate,
+      additional_info: {
+        payer: {
+          first_name,
+          last_name: cpfClean,
+        },
+        items: [
+          {
+            id: uuidv4(),
+            quantity: 1,
+            title: "Ingresso Congresso Louvor 2024",
+            unit_price: amount,
+            category_id: "default",
+            description: "Ingresso Congresso Louvor 2024",
+          },
+        ],
+      },
+      payer: {
+        email,
+        entity_type: "individual",
+        first_name,
+        identification: { number: cpfClean, type: "CPF" },
+        last_name,
+        type: null,
+      },
+      external_reference: process.env.EXTERNAL_REFERENCE_MERCADO_PAGO,
+      statement_descriptor: "Congresso Louvor 2024",
     };
 
     const requestOptions = {
@@ -60,6 +82,8 @@ export async function POST(req: Request) {
     };
 
     const response = await payment.create({ body, requestOptions });
+
+    // TODO: Salvar ticket no banco de dados
 
     return NextResponse.json(
       {

@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const EXPIRATION_PIX_TIME = 3600; // 60 minutos em segundos
+const EXPIRATION_PIX_TIME = 900; // 15 minutos
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -430,7 +430,7 @@ export default function CheckoutPage() {
               Pagar com Copia e Cola
             </button>
             <p className="text-red-600 font-bold mb-4">
-              Tempo restante: {formatTime(timeLeft)}
+              Tempo até expirar: {formatTime(timeLeft)}
             </p>
             <button
               className="text-gray-600 hover:text-gray-800"

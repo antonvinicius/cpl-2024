@@ -31,7 +31,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // TODO: Implementar a lógica para atualizar o ticket no banco de dados como pago
   const token = process.env.MERCADO_PAGO_TOKEN;
   const client = new MercadoPagoConfig({
     accessToken: token,
@@ -42,7 +41,11 @@ export async function POST(req: Request) {
     id: dataId,
   });
 
-  console.log(`Pagamento status: ${data.status}`);
+  if (data.status == "approved") {
+    // TODO: Atualizar o ticket no banco de dados como pago.
+    const cpf = data.additional_info.payer.last_name
+    console.log(`Compra identificada no cpf ${cpf}`);
+  }
 
   return NextResponse.json(
     {
