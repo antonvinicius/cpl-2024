@@ -2,3 +2,4 @@ node_modules
 .breakpoints
 .next/
 .replit
+.env
