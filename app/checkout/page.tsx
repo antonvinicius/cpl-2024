@@ -86,12 +86,20 @@ export default function CheckoutPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    const { id, value, type, checked } = e.target;
+    const { id, value, type } = e.target;
 
-    setFormData({
-      ...formData,
-      [id]: type === "checkbox" ? checked : value,
-    });
+    // Verifique se o e.target é um HTMLInputElement para acessar 'checked'
+    if (e.target instanceof HTMLInputElement && type === "checkbox") {
+      setFormData({
+        ...formData,
+        [id]: e.target.checked,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [id]: value,
+      });
+    }
 
     if (id === "church") {
       if (!value) return;
