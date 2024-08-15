@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const first_name = nameParts[0];
     const last_name = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
     const cpfClean = cpf.replace(/\./g, "").replace(/-/g, "");
-    const amount = 0.04;
+    const amount = 0.07;
 
     const filter = await supabase
       .from("tickets")

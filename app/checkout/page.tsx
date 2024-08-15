@@ -260,7 +260,7 @@ export default function CheckoutPage() {
   };
 
   useEffect(() => {
-    supabase
+    const subscription = supabase
       .channel("payment_channel")
       .on(
         "postgres_changes",
@@ -282,7 +282,7 @@ export default function CheckoutPage() {
               );
               setTimeout(() => {
                 router.push(
-                  `/my-tickets?cpf=${formData.cpf.replace("-", "").replace(".", "")}&dob=${formData.dob}`,
+                  `/my-tickets?cpf=${payer_cpf}`,
                 );
               }, 2000);
             }
@@ -290,8 +290,46 @@ export default function CheckoutPage() {
         },
       )
       .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [payer_cpf]);
 
+
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === "visible") {
+        const { data: ticket, error } = await supabase
+          .from("tickets")
+          .select("*")
+          .eq("payer_cpf", payer_cpf)
+          .eq("payment_status", "approved")
+          .single();
+
+        if (ticket && !error) {
+          handleCloseModal();
+          toast.success("Pagamento recebido com sucesso! Redirecionando...", {
+            position: "top-center",
+            autoClose: 2000,
+          });
+          setTimeout(() => {
+            router.push(
+              `/my-tickets?cpf=${payer_cpf}`,
+            );
+          }, 2000);
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [payer_cpf]);
+
+  
   return (
     <>
       <div className="relative min-h-screen flex justify-center items-center py-12 px-4 overflow-hidden">
