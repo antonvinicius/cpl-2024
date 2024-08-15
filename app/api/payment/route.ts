@@ -3,26 +3,48 @@ import { v4 as uuidv4 } from "uuid";
 import { NextResponse } from "next/server";
 import { PaymentCreateRequest } from "mercadopago/dist/clients/payment/create/types";
 import moment from "moment-timezone";
+import { supabase } from "../supabase/client";
+import { AppError } from "../AppError";
 
 export async function POST(req: Request) {
   try {
     const { name, email, cpf, dob, church } = await req.json();
 
     if (!name || !email || !cpf || !dob || !church) {
-      return NextResponse.json(
-        { error: "Todos os campos são obrigatórios." },
-        { status: 400 },
+      throw new AppError("Todos os campos são obrigatórios.", 400);
+    }
+
+    const nameParts = name.split(" ");
+    const first_name = nameParts[0];
+    const last_name = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+    const cpfClean = cpf.replace(/\./g, "").replace(/-/g, "");
+    const amount = 0.03;
+
+    const filter = await supabase
+      .from("tickets")
+      .select("*")
+      .eq("payer_cpf", cpfClean)
+      .single();
+
+    if (filter.data != null && filter.error) {
+      console.error(filter.error);
+      throw new AppError(
+        "Servidores offline. Tente novamente mais tarde.",
+        500,
       );
     }
+
+    if (filter.data && filter.data.payment_status === "approved") {
+      throw new AppError("Você já possui um ingresso comprado neste CPF.", 400);
+    }
+
+    const ticket_db = filter.data;
 
     const idempotencyKey = uuidv4();
     const token = process.env.MERCADO_PAGO_TOKEN;
     if (!token) {
       console.error("Token de acesso não está disponível.");
-      return NextResponse.json(
-        { error: "Token de acesso não está disponível." },
-        { status: 500 },
-      );
+      throw new AppError("Token de acesso não está disponível.", 500);
     }
 
     const client = new MercadoPagoConfig({
@@ -36,12 +58,6 @@ export async function POST(req: Request) {
     const formattedExpirationDate = currentDate.format(
       "YYYY-MM-DDTHH:mm:ss.SSSZ",
     );
-
-    const nameParts = name.split(" ");
-    const first_name = nameParts[0];
-    const last_name = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
-    const cpfClean = cpf.replace(/\./g, "").replace(/-/g, "");
-    const amount = 0.03;
 
     const body: PaymentCreateRequest = {
       transaction_amount: amount,
@@ -83,7 +99,51 @@ export async function POST(req: Request) {
 
     const response = await payment.create({ body, requestOptions });
 
-    // TODO: Salvar ticket no banco de dados
+    if (!ticket_db) {
+      const addOperation = await supabase
+        .from("tickets")
+        .insert([
+          {
+            church,
+            payer_cpf: cpfClean,
+            payer_dob: dob,
+            payer_email: email,
+            payer_name: name,
+            payment_amount: amount,
+          },
+        ])
+        .select();
+
+      if (addOperation.error) {
+        console.error(addOperation.error);
+        throw new AppError(
+          "Não foi possível salvar o ticket no banco de dados.",
+          500,
+        );
+      }
+
+      console.log("Ticket adicionado com sucesso.");
+    } else {
+      const dbResponse = await supabase
+        .from("tickets")
+        .update({
+          church,
+          payer_dob: dob,
+          payer_email: email,
+          payer_name: name,
+          payment_amount: amount,
+        })
+        .eq("payer_cpf", cpfClean)
+        .select();
+
+      if (dbResponse.error) {
+        console.error(dbResponse.error);
+        throw new AppError(
+          "Não foi possível salvar o ticket no banco de dados.",
+          500,
+        );
+      }
+    }
 
     return NextResponse.json(
       {
@@ -95,8 +155,16 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error("Erro ao processar pagamento:", error);
+
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode },
+      );
+    }
+
     return NextResponse.json(
-      { error: "Erro ao processar pagamento." },
+      { error: "Erro desconhecido. Tente novamente mais tarde." },
       { status: 500 },
     );
   }

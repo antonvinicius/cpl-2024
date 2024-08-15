@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { validateWebhook } from "./validateWebhook";
 import { MercadoPagoConfig, Payment } from "mercadopago";
+import { supabase } from "../supabase/client";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -42,9 +43,19 @@ export async function POST(req: Request) {
   });
 
   if (data.status == "approved") {
-    // TODO: Atualizar o ticket no banco de dados como pago.
-    const cpf = data.additional_info.payer.last_name
-    console.log(`Compra identificada no cpf ${cpf}`);
+    const cpf = data.additional_info.payer.last_name;
+
+    const dbResponse = await supabase
+      .from("tickets")
+      .update({ payment_status: "approved" })
+      .eq("payer_cpf", cpf)
+      .select();
+
+    if (dbResponse.error) {
+      console.error(`PAGAMENTO APROVADO ERRO [{${cpf}}]: ${dbResponse.error}`)
+    }
+
+    console.log("atualizado com sucesso approved");
   }
 
   return NextResponse.json(

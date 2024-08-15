@@ -205,7 +205,8 @@ export default function CheckoutPage() {
         });
 
         if (!response.ok) {
-          throw new Error("Erro ao processar pagamento");
+          const errorResponse = await response.json();
+          throw new Error(errorResponse.error);
         }
 
         const data = await response.json();
@@ -216,8 +217,7 @@ export default function CheckoutPage() {
           position: "top-center",
         });
       } catch (error) {
-        console.error("Erro ao processar pagamento:", error);
-        toast.error("Ocorreu um erro ao processar o pagamento", {
+        toast.error(error.message, {
           position: "top-center",
         });
       } finally {

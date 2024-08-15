@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",
+    "@supabase/supabase-js": "^2.45.1",
     "framer-motion": "^11.3.24",
     "mercadopago": "^2.0.11",
     "moment-timezone": "^0.5.45",
