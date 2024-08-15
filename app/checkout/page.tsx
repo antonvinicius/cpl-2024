@@ -19,6 +19,7 @@ export default function CheckoutPage() {
     cpf: "",
     dob: "",
     church: "",
+    consent: false, // Adicionado campo para o consentimento
   });
 
   const [errors, setErrors] = useState({
@@ -27,6 +28,7 @@ export default function CheckoutPage() {
     cpf: "",
     dob: "",
     church: "",
+    consent: "", // Adicionado erro para o consentimento
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -81,8 +83,12 @@ export default function CheckoutPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    const { id, value } = e.target;
-    setFormData({ ...formData, [id]: value });
+    const { id, value, type, checked } = e.target;
+
+    setFormData({
+      ...formData,
+      [id]: type === "checkbox" ? checked : value,
+    });
 
     if (id === "church") {
       if (!value) return;
@@ -142,6 +148,7 @@ export default function CheckoutPage() {
       cpf: "",
       dob: "",
       church: "",
+      consent: "", // Inicializar erro de consentimento
     };
 
     if (!formData.name) {
@@ -171,6 +178,11 @@ export default function CheckoutPage() {
 
     if (!formData.church) {
       newErrors.church = "Selecione uma igreja";
+    }
+
+    if (!formData.consent) {
+      newErrors.consent =
+        "Você deve aceitar os Termos de Uso e Política de Privacidade";
     }
 
     setErrors(newErrors);
@@ -397,6 +409,40 @@ export default function CheckoutPage() {
                         Total: R$ 40,00
                       </p>
                     </>
+                  )}
+                </div>
+
+                {/* Novo campo de consentimento */}
+                <div className="mb-6">
+                  <label className="block text-gray-400">
+                    <input
+                      type="checkbox"
+                      id="consent"
+                      checked={formData.consent}
+                      onChange={handleChange}
+                      className="mr-2"
+                    />
+                    Eu concordo com os{" "}
+                    <a
+                      href="/termos-de-uso"
+                      target="_blank"
+                      className="underline text-blue-400 hover:text-blue-600"
+                    >
+                      Termos de Uso
+                    </a>{" "}
+                    e a{" "}
+                    <a
+                      href="/politica-de-privacidade"
+                      target="_blank"
+                      className="underline text-blue-400 hover:text-blue-600"
+                    >
+                      Política de Privacidade
+                    </a>
+                  </label>
+                  {errors.consent && (
+                    <p className="text-red-500 text-sm mt-2">
+                      {errors.consent}
+                    </p>
                   )}
                 </div>
 
