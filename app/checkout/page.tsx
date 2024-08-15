@@ -7,6 +7,7 @@ import heroImage from "/public/hero.jpg";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { supabase } from "../supabase-front/client";
 
 const EXPIRATION_PIX_TIME = 900; // 15 minutos
 
@@ -21,6 +22,8 @@ export default function CheckoutPage() {
     church: "",
     consent: false, // Adicionado campo para o consentimento
   });
+
+  const [payer_cpf, setPayer_cpf] = useState("");
 
   const [errors, setErrors] = useState({
     name: "",
@@ -216,6 +219,7 @@ export default function CheckoutPage() {
         toast.success("Pagamento gerado com sucesso!", {
           position: "top-center",
         });
+        setPayer_cpf(formData.cpf.replace(/\./g, "").replace(/-/g, ""));
       } catch (error) {
         toast.error(error.message, {
           position: "top-center",
@@ -254,6 +258,39 @@ export default function CheckoutPage() {
       .toString()
       .padStart(2, "0")}`;
   };
+
+  useEffect(() => {
+    supabase
+      .channel("payment_channel")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "tickets" },
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const { new: ticket } = payload;
+            if (
+              ticket.payment_status === "approved" &&
+              ticket.payer_cpf === payer_cpf
+            ) {
+              handleCloseModal();
+              toast.success(
+                "Pagamento recebido com sucesso! Redirecionando...",
+                {
+                  position: "top-center",
+                  autoClose: 2000,
+                },
+              );
+              setTimeout(() => {
+                router.push(
+                  `/my-tickets?cpf=${formData.cpf.replace("-", "").replace(".", "")}&dob=${formData.dob}`,
+                );
+              }, 2000);
+            }
+          }
+        },
+      )
+      .subscribe();
+  }, [payer_cpf]);
 
   return (
     <>
