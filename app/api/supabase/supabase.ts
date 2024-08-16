@@ -9,9 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      churches: {
+        Row: {
+          church_name: string
+          has_discount: boolean
+          id: number
+        }
+        Insert: {
+          church_name: string
+          has_discount: boolean
+          id?: number
+        }
+        Update: {
+          church_name?: string
+          has_discount?: boolean
+          id?: number
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
-          church: string
+          church_id: number
           created_at: string
           id: number
           payer_cpf: string
@@ -22,7 +40,7 @@ export type Database = {
           payment_status: string
         }
         Insert: {
-          church: string
+          church_id: number
           created_at?: string
           id?: number
           payer_cpf: string
@@ -33,7 +51,7 @@ export type Database = {
           payment_status?: string
         }
         Update: {
-          church?: string
+          church_id?: number
           created_at?: string
           id?: number
           payer_cpf?: string
@@ -43,7 +61,15 @@ export type Database = {
           payment_amount?: number
           payment_status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tickets_church_id_fkey"
+            columns: ["church_id"]
+            isOneToOne: false
+            referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

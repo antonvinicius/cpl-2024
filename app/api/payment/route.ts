@@ -6,6 +6,51 @@ import moment from "moment-timezone";
 import { supabase } from "../supabase/client";
 import { AppError } from "../AppError";
 
+async function calculateAmount(church_id: number) {
+  if (process.env.ENVIRONMENT === "development") {
+    const randomNumber =
+      Math.round((Math.random() * (0.15 - 0.01) + 0.01) * 100) / 100;
+    return randomNumber;
+  }
+
+  const { data: churches_db, error: churchesError } = await supabase
+    .from("churches")
+    .select("id")
+    .eq("has_discount", true);
+
+  const { data: churches, error: churchesError2 } = await supabase
+    .from("churches")
+    .select("*");
+
+  if (churchesError || churchesError2) {
+    console.error("Erro ao buscar igrejas:", churchesError);
+    throw new AppError("Erro ao buscar igrejas", 500);
+  }
+
+  const churchIds = churches_db.map((church) => church.id);
+
+  const { count, error: ticketsError } = await supabase
+    .from("tickets")
+    .select("id", { count: "exact" })
+    .in("church_id", churchIds)
+    .eq("payment_status", "approved");
+
+  if (ticketsError) {
+    console.error("Erro ao buscar tickets:", ticketsError);
+    throw new AppError("Erro ao buscar tickets", 500);
+  }
+  if (count < 60) {
+    const church = churches.find((ch) => ch.id == church_id);
+    if (church?.has_discount) {
+      return 50;
+    } else {
+      return 75;
+    }
+  } else {
+    return 75;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { name, email, cpf, dob, church } = await req.json();
@@ -18,7 +63,7 @@ export async function POST(req: Request) {
     const first_name = nameParts[0];
     const last_name = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
     const cpfClean = cpf.replace(/\./g, "").replace(/-/g, "");
-    const amount = 0.07;
+    const amount = await calculateAmount(church);
 
     const filter = await supabase
       .from("tickets")
@@ -104,7 +149,7 @@ export async function POST(req: Request) {
         .from("tickets")
         .insert([
           {
-            church,
+            church_id: church,
             payer_cpf: cpfClean,
             payer_dob: dob,
             payer_email: email,
@@ -127,7 +172,7 @@ export async function POST(req: Request) {
       const dbResponse = await supabase
         .from("tickets")
         .update({
-          church,
+          church_id: church,
           payer_dob: dob,
           payer_email: email,
           payer_name: name,

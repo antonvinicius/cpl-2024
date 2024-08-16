@@ -11,8 +11,18 @@ import { supabase } from "../supabase-front/client";
 
 const EXPIRATION_PIX_TIME = 900; // 15 minutos
 
+type Church = {
+  id: number;
+  church_name: string;
+  has_discount: boolean;
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
+
+  const [churches, setChurches] = useState<Church[]>([]);
+  const [amount, setAmount] = useState(75);
+  const [discount, setDiscount] = useState(0);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -83,7 +93,7 @@ export default function CheckoutPage() {
     router.push("/");
   };
 
-  const handleChange = (
+  const handleChange = async (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { id, value, type } = e.target;
@@ -103,18 +113,52 @@ export default function CheckoutPage() {
 
     if (id === "church") {
       if (!value) return;
-
-      // Quando o dropdown da igreja mudar, iniciar o loading do total
       setIsLoadingTotal(true);
 
-      // Simular uma requisição assíncrona com setTimeout
-      setTimeout(() => {
-        setIsLoadingTotal(false); // Finaliza o loading após 2 segundos
-        toast.success("Valores atualizados com sucesso!", {
-          position: "top-center",
-        });
-      }, 2000);
+      const { data: churches_db, error: churchesError } = await supabase
+        .from("churches")
+        .select("id")
+        .eq("has_discount", true);
+
+      if (churchesError) {
+        console.error("Erro ao buscar igrejas:", churchesError);
+        return;
+      }
+
+      const churchIds = churches_db.map((church) => church.id);
+
+      const { count, error: ticketsError } = await supabase
+        .from("tickets")
+        .select("id", { count: "exact" })
+        .in("church_id", churchIds)
+        .eq("payment_status", "approved");
+
+      if (ticketsError) {
+        console.error("Erro ao buscar tickets:", ticketsError);
+        return;
+      }
+
+      if (count < 60) {
+        const church = churches.find((ch) => ch.id === parseInt(value));
+        if (church?.has_discount) {
+          setDiscount(25);
+        } else {
+          setDiscount(0);
+        }
+      } else {
+        setDiscount(0);
+      }
+
+      setIsLoadingTotal(false);
+      toast.success("Valores atualizados com sucesso!", {
+        position: "top-center",
+      });
     }
+  };
+
+  const fetchChurches = async () => {
+    const { data: churches } = await supabase.from("churches").select("*");
+    setChurches(churches);
   };
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -289,9 +333,7 @@ export default function CheckoutPage() {
                 },
               );
               setTimeout(() => {
-                router.push(
-                  `/my-tickets?cpf=${payer_cpf}`,
-                );
+                router.push(`/my-tickets?cpf=${payer_cpf}`);
               }, 2000);
             }
           }
@@ -303,7 +345,6 @@ export default function CheckoutPage() {
       subscription.unsubscribe();
     };
   }, [payer_cpf]);
-
 
   useEffect(() => {
     const handleVisibilityChange = async () => {
@@ -322,9 +363,7 @@ export default function CheckoutPage() {
             autoClose: 2000,
           });
           setTimeout(() => {
-            router.push(
-              `/my-tickets?cpf=${payer_cpf}`,
-            );
+            router.push(`/my-tickets?cpf=${payer_cpf}`);
           }, 2000);
         }
       }
@@ -337,7 +376,10 @@ export default function CheckoutPage() {
     };
   }, [payer_cpf]);
 
-  
+  useEffect(() => {
+    fetchChurches();
+  }, []);
+
   return (
     <>
       <div className="relative min-h-screen flex justify-center items-center py-12 px-4 overflow-hidden">
@@ -441,9 +483,11 @@ export default function CheckoutPage() {
                     className="w-full p-3 rounded bg-gray-800 border border-gray-600 text-white"
                   >
                     <option value="">Selecione sua igreja</option>
-                    <option value="igreja1">Igreja 1</option>
-                    <option value="igreja2">Igreja 2</option>
-                    <option value="igreja3">Igreja 3</option>
+                    {churches.map((church) => (
+                      <option key={church.id} value={church.id}>
+                        {church.church_name}
+                      </option>
+                    ))}
                   </select>
                   {errors.church && (
                     <p className="text-red-500 text-sm mt-2">{errors.church}</p>
@@ -486,10 +530,28 @@ export default function CheckoutPage() {
                     </div>
                   ) : (
                     <>
-                      <p className="text-gray-400">Subtotal: R$ 45,00</p>
-                      <p className="text-gray-400">Desconto: -R$ 10,00</p>
+                      <p className="text-gray-400">
+                        Subtotal:{" "}
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        }).format(amount)}
+                      </p>
+                      {discount > 0 && (
+                        <p className="text-gray-400">
+                          Desconto: -
+                          {new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(discount)}
+                        </p>
+                      )}
                       <p className="text-xl font-bold text-white">
-                        Total: R$ 40,00
+                        Total:{" "}
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        }).format(amount - discount)}
                       </p>
                     </>
                   )}
