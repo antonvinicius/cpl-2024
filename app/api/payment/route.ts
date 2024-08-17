@@ -7,12 +7,6 @@ import { supabase } from "../supabase/client";
 import { AppError } from "../AppError";
 
 async function calculateAmount(church_id: number) {
-  if (process.env.ENVIRONMENT === "development") {
-    const randomNumber =
-      Math.round((Math.random() * (0.15 - 0.01) + 0.01) * 100) / 100;
-    return randomNumber;
-  }
-
   const { data: churches_db, error: churchesError } = await supabase
     .from("churches")
     .select("id")
@@ -39,15 +33,19 @@ async function calculateAmount(church_id: number) {
     console.error("Erro ao buscar tickets:", ticketsError);
     throw new AppError("Erro ao buscar tickets", 500);
   }
-  if (count < 60) {
+
+  const ticketAmount = parseInt(process.env.TICKET_AMOUNT)
+  const ticketDiscount = parseInt(process.env.TICKET_DISCOUNT)
+  
+  if (count < parseInt(process.env.DISCOUNT_LIMIT)) {
     const church = churches.find((ch) => ch.id == church_id);
     if (church?.has_discount) {
-      return 50;
+      return ticketAmount - ticketDiscount;
     } else {
-      return 75;
+      return ticketAmount;
     }
   } else {
-    return 75;
+    return ticketAmount;
   }
 }
 

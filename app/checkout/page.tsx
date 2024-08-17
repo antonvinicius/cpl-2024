@@ -138,7 +138,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      if (count < 60) {
+      if (count < parseInt(process.env.NEXT_PUBLIC_DISCOUNT_LIMIT)) {
         const church = churches.find((ch) => ch.id === parseInt(value));
         if (church?.has_discount) {
           setDiscount(25);
