@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "./components/AdminLayout";
 import { Tables } from "../api/supabase/supabase";
@@ -10,7 +10,9 @@ type Ticket = Tables<"tickets">;
 type Church = Tables<"churches">;
 
 type TicketWithChurch = Ticket & {
-  church: Church;
+  church: {
+    church_name: string;
+  };
 };
 
 export default function TicketList() {
@@ -28,51 +30,72 @@ export default function TicketList() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+  // Função para buscar os dados, usando useCallback para memoização
+  const fetchData = useCallback(async () => {
+    setLoading(true);
 
-      let query = supabase
-        .from("tickets")
-        .select("*, church:churches(church_name)", { count: "exact" });
+    let query = supabase
+      .from("tickets")
+      .select("*, church:churches(church_name)", { count: "exact" });
 
-      if (filterStatus) {
-        query = query.eq("payment_status", filterStatus);
-      }
+    if (filterStatus) {
+      query = query.eq("payment_status", filterStatus);
+    }
 
-      if (searchTerm) {
-        query = query.ilike("payer_name", `%${searchTerm}%`);
-      }
+    if (searchTerm) {
+      query = query.ilike("payer_name", `%${searchTerm}%`);
+    }
 
-      if (searchCpf) {
-        query = query.ilike("payer_cpf", `%${searchCpf}%`);
-      }
+    if (searchCpf) {
+      query = query.ilike("payer_cpf", `%${searchCpf}%`);
+    }
 
-      if (selectedChurch) {
-        query = query.eq("church_id", selectedChurch);
-      }
+    if (selectedChurch) {
+      query = query.eq("church_id", selectedChurch);
+    }
 
-      query = query
-        .order("payment_status", { ascending: true })
-        .range(
-          (currentPage - 1) * itemsPerPage,
-          currentPage * itemsPerPage - 1,
-        );
+    query = query
+      .order("payment_status", { ascending: true })
+      .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
 
-      const { data: tickets, count, error } = await query;
-      const { data: churches } = await supabase.from("churches").select("*");
+    const { data: tickets, count, error } = await query;
+    const { data: churches } = await supabase.from("churches").select("*");
 
-      if (!error) {
-        setTickets(tickets || []);
-        setTotalTickets(count || 0);
-        setChurches(churches || []);
-      }
+    if (!error) {
+      setTickets(tickets || []);
+      setTotalTickets(count || 0);
+      setChurches(churches || []);
+    }
 
-      setLoading(false);
-    };
-
-    fetchData();
+    setLoading(false);
   }, [filterStatus, searchTerm, searchCpf, selectedChurch, currentPage]);
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel("payment_channel")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tickets" },
+        (payload) => {
+          fetchData(); // Atualiza os dados mantendo os filtros atuais
+        },
+      )
+      .subscribe();
+
+    // Cleanup da subscrição
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, [fetchData]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Reseta a página para 1 sempre que um filtro é alterado
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, searchTerm, searchCpf, selectedChurch]);
 
   const validateToken = async () => {
     const token = localStorage.getItem("token");
@@ -111,6 +134,10 @@ export default function TicketList() {
       style: "currency",
       currency: "BRL",
     });
+  };
+
+  const translateStatus = (status: string) => {
+    return status === "approved" ? "Aprovado" : "Pendente";
   };
 
   const totalPages = Math.ceil(totalTickets / itemsPerPage);
@@ -210,10 +237,10 @@ export default function TicketList() {
                         className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
                           ticket.payment_status === "approved"
                             ? "bg-green-500 text-white"
-                            : "bg-red-500 text-white"
+                            : "bg-orange-500 text-white"
                         }`}
                       >
-                        {ticket.payment_status}
+                        {translateStatus(ticket.payment_status)}
                       </span>
                     </td>
                     <td className="py-2 px-4 border-b border-gray-700">
