@@ -62,7 +62,7 @@ export default function Navbar() {
             onClick={handleViewTicketsClick}
             className="bg-teal-600 hover:bg-teal-700 text-xs md:text-sm lg:text-base font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300"
           >
-            Ver Meus Ingressos
+            Meus Ingressos
           </motion.button>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function Navbar() {
             onClick={handleViewTicketsClick}
             className="w-full text-center bg-teal-600 hover:bg-teal-700 text-xs md:text-sm lg:text-base font-bold py-2 px-4 rounded-full shadow-lg transition-all duration-300"
           >
-            Ver Meus Ingressos
+            Meus Ingressos
           </motion.button>
         </div>
       </motion.div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CreditCardIcon, EnvelopeIcon, TicketIcon } from "@heroicons/react/24/solid";
+import { CreditCardIcon, QrCodeIcon, TicketIcon } from "@heroicons/react/24/solid";
 import { motion, useInView } from "framer-motion";
 
 const itemVariants = {
@@ -27,14 +27,14 @@ export default function HowItWorks() {
       description: "Selecione e compre seu ingresso de forma rápida e segura.",
     },
     {
-      icon: EnvelopeIcon,
-      title: "Recebe o comprovante via email",
-      description: "Após a compra, você receberá o comprovante diretamente no seu email.",
+      icon: QrCodeIcon,
+      title: "Cheque seu QR Code",
+      description: "Após a compra, você pode conferir seu QR code de ingresso na seção Meus Ingressos",
     },
     {
       icon: TicketIcon,
-      title: "Apresenta o comprovante no evento",
-      description: "Mostre o comprovante na entrada do evento para ter acesso ao congresso.",
+      title: "Apresente o QR code no evento",
+      description: "Mostre o QR code na entrada do evento para ter acesso ao congresso.",
     },
   ];
 
