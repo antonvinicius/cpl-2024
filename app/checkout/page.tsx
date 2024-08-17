@@ -332,8 +332,9 @@ export default function CheckoutPage() {
                   autoClose: 2000,
                 },
               );
+              localStorage.setItem('payer_cpf', payer_cpf)
               setTimeout(() => {
-                router.push(`/my-tickets?cpf=${payer_cpf}`);
+                router.push(`/my-tickets`);
               }, 2000);
             }
           }

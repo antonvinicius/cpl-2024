@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
@@ -12,6 +12,7 @@ export default function MyTickets() {
   const [ticket, setTicket] = useState(null);
   const [errors, setErrors] = useState({ cpf: "" });
   const router = useRouter();
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const validateCPF = (cpf) => {
     const cleanCpf = cpf.replace(/\D/g, "");
@@ -60,13 +61,7 @@ export default function MyTickets() {
     setCpf(maskedValue);
   };
 
-  const handleSearch = async (e) => {
-    e.preventDefault(); // Previne o comportamento padrão de envio do formulário
-
-    if (!validateForm()) {
-      return;
-    }
-
+  const validateTicketByCpf = async (cpf: string) => {
     setLoading(true);
 
     try {
@@ -77,8 +72,6 @@ export default function MyTickets() {
         },
         body: JSON.stringify({ cpf: cpf.replace(/\D/g, "") }),
       });
-
-      setLoading(false);
 
       if (response.ok) {
         const data = await response.json();
@@ -92,14 +85,42 @@ export default function MyTickets() {
         toast.error("Erro ao buscar o ticket. Tente novamente.");
       }
     } catch (error) {
-      setLoading(false);
       toast.error("Erro no servidor. Tente novamente mais tarde.");
+    } finally {
+      setLoading(false); // Reabilitar o botão após a requisição
     }
+  };
+
+  const handleSearch = async (e) => {
+    if (e) {
+      e.preventDefault();
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    await validateTicketByCpf(cpf);
   };
 
   const handleBackToHome = () => {
     router.push("/");
   };
+
+  useEffect(() => {
+    const payer_cpf = localStorage.getItem("payer_cpf");
+    if (payer_cpf) {
+      let formatted_cpf = payer_cpf.replace(
+        /(\d{3})(\d{3})(\d{3})(\d{2})/,
+        "$1.$2.$3-$4",
+      );
+      setCpf(formatted_cpf);
+
+      setTimeout(() => {
+        buttonRef.current?.click();
+      }, 500);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-r from-gray-800 via-gray-900 to-black p-4 text-white">
@@ -134,8 +155,10 @@ export default function MyTickets() {
             </div>
             <div className="space-y-4 mt-6">
               <button
+                ref={buttonRef}
                 type="submit"
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg"
+                disabled={loading} // Desabilitar botão durante o loading
               >
                 {loading ? "Buscando..." : "Buscar Ingresso"}
               </button>
