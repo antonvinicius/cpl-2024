@@ -3,29 +3,24 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
-const ticketDetails = {
-  nome: "João da Silva",
-  igreja: "Igreja Central",
-  email: "joao.silva@example.com",
-};
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function MyTickets() {
   const [cpf, setCpf] = useState("");
-  const [dob, setDob] = useState("");
   const [loading, setLoading] = useState(false);
   const [ticket, setTicket] = useState(null);
-  const [errors, setErrors] = useState({ cpf: "", dob: "" });
+  const [errors, setErrors] = useState({ cpf: "" });
   const router = useRouter();
 
-  const validateCPF = (cpf: string) => {
+  const validateCPF = (cpf) => {
     const cleanCpf = cpf.replace(/\D/g, "");
 
     if (cleanCpf.length !== 11) return false;
 
     if (/^(\d)\1+$/.test(cleanCpf)) return false;
 
-    const calculateDigit = (cpf: string, factor: number) => {
+    const calculateDigit = (cpf, factor) => {
       let total = 0;
       for (let i = 0; i < factor - 1; i++) {
         total += parseInt(cpf[i]) * (factor - i);
@@ -43,16 +38,10 @@ export default function MyTickets() {
   };
 
   const validateForm = () => {
-    const newErrors = { cpf: "", dob: "" };
+    const newErrors = { cpf: "" };
 
     if (!validateCPF(cpf)) {
       newErrors.cpf = "CPF inválido";
-    }
-
-    if (!dob) {
-      newErrors.dob = "Data de nascimento inválida";
-    } else if (isNaN(Date.parse(dob))) {
-      newErrors.dob = "Data de nascimento inválida";
     }
 
     setErrors(newErrors);
@@ -60,7 +49,7 @@ export default function MyTickets() {
     return Object.values(newErrors).every((error) => error === "");
   };
 
-  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCpfChange = (e) => {
     const value = e.target.value;
     const cleanValue = value.replace(/\D/g, "");
     const maskedValue = cleanValue
@@ -71,7 +60,7 @@ export default function MyTickets() {
     setCpf(maskedValue);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e) => {
     e.preventDefault(); // Previne o comportamento padrão de envio do formulário
 
     if (!validateForm()) {
@@ -80,14 +69,32 @@ export default function MyTickets() {
 
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/ticket", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cpf: cpf.replace(/\D/g, "") }),
+      });
+
       setLoading(false);
-      if (cpf.replace(/\D/g, "") === "80283497068" && dob === "2000-01-01") {
-        setTicket(ticketDetails);
+
+      if (response.ok) {
+        const data = await response.json();
+        setTicket(data);
+        toast.success("Ticket encontrado com sucesso!");
+      } else if (response.status === 404) {
+        setTicket(null);
+        toast.info("Nenhum ticket encontrado para o CPF fornecido.");
       } else {
         setTicket(null);
+        toast.error("Erro ao buscar o ticket. Tente novamente.");
       }
-    }, 2000);
+    } catch (error) {
+      setLoading(false);
+      toast.error("Erro no servidor. Tente novamente mais tarde.");
+    }
   };
 
   const handleBackToHome = () => {
@@ -121,24 +128,6 @@ export default function MyTickets() {
                   <p className="text-red-500 text-sm mt-2">{errors.cpf}</p>
                 )}
               </div>
-              <div className="mb-6">
-                <label
-                  htmlFor="dob"
-                  className="block text-gray-400 mb-2 text-sm"
-                >
-                  Data de Nascimento
-                </label>
-                <input
-                  type="date"
-                  id="dob"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="w-full p-3 rounded bg-gray-900 border border-gray-700 text-white text-sm"
-                />
-                {errors.dob && (
-                  <p className="text-red-500 text-sm mt-2">{errors.dob}</p>
-                )}
-              </div>
             </div>
             <div className="space-y-4">
               <button
@@ -164,12 +153,11 @@ export default function MyTickets() {
           ) : ticket ? (
             <div>
               <h2 className="text-xl font-bold mb-6">Detalhes do Ingresso</h2>
-              <p className="text-sm mb-4">Nome: {ticket.nome}</p>
-              <p className="text-sm mb-4">Igreja: {ticket.igreja}</p>
-              <p className="text-sm mb-4">Email: {ticket.email}</p>
+              <p className="text-sm mb-4">Nome: {ticket.payer_name}</p>
+              <p className="text-sm mb-4">Igreja: {ticket.church_name}</p>
               <div className="flex justify-center mt-6">
                 <Image
-                  src="/qr-code.png"
+                  src={ticket.qr_code}
                   width={200}
                   height={200}
                   alt="QR Code do Ingresso"
@@ -183,6 +171,7 @@ export default function MyTickets() {
           )}
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }
