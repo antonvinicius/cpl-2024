@@ -12,13 +12,32 @@ export default function ValidateTicketPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user === "admin") {
+  const validateToken = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/admin/login");
+      return;
+    }
+
+    const response = await fetch('/api/validate-token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ token })
+    });
+
+    const data = await response.json();
+    if (data.valid) {
       setIsLoggedIn(true);
     } else {
-      router.push("/admin/login"); // Redireciona para a página de login se não estiver autenticado
+      localStorage.removeItem("token");
+      router.push("/admin/login");
     }
+  };
+  
+  useEffect(() => {
+    validateToken()
   }, [router]);
 
   const handleStartCamera = () => {

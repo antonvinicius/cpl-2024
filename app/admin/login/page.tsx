@@ -18,28 +18,28 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false); // Estado de loading
   const router = useRouter();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true); // Ativa o loading
+    setLoading(true);
 
-    // Simulação de requisição com delay fictício
-    setTimeout(() => {
-      setLoading(false); // Desativa o loading
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
 
-      if (username === "admin" && password === "admin") {
-        toast.success("Login realizado com sucesso! Redirecionando...", {
-          position: "top-center",
-        });
-        setTimeout(() => {
-          localStorage.setItem("user", "admin");
-          router.push("/admin"); // Redireciona para a página de administração
-        }, 2000); // Redireciona após 2 segundos
-      } else {
-        toast.error("Usuário ou senha inválidos", {
-          position: "top-center",
-        });
-      }
-    }, 2000); // Delay fictício de 2 segundos para simular a requisição
+    if (response.ok) {
+      const { token } = await response.json();
+      localStorage.setItem("token", token);
+      router.push("/admin"); // Redireciona para a página protegida após o login
+    } else {
+      toast.error("Usuário ou senha inválidos", {
+        position: "top-center",
+      });
+      setLoading(false);
+    }
   };
 
   const togglePasswordVisibility = () => {
