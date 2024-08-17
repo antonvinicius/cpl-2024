@@ -15,6 +15,7 @@ export async function POST(request: Request) {
       .from("tickets")
       .select("*")
       .eq("payer_cpf", cpf)
+      .eq("payment_status", "approved")
       .maybeSingle();
 
     if (ticketError) {

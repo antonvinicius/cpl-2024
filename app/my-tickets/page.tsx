@@ -106,7 +106,10 @@ export default function MyTickets() {
       <div className="max-w-4xl w-full flex flex-col md:flex-row items-stretch space-y-8 md:space-y-0 md:space-x-8">
         {/* Formulário */}
         <div className="flex-1 bg-gray-800 p-8 rounded-lg shadow-lg flex flex-col justify-between">
-          <form onSubmit={handleSearch}>
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-col justify-between flex-1"
+          >
             <div>
               <h2 className="text-xl font-bold mb-6">Buscar Ingresso</h2>
               <div className="mb-4">
@@ -129,21 +132,22 @@ export default function MyTickets() {
                 )}
               </div>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 mt-6">
               <button
                 type="submit"
                 className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg"
               >
                 {loading ? "Buscando..." : "Buscar Ingresso"}
               </button>
+              <button
+                type="button"
+                onClick={handleBackToHome}
+                className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg"
+              >
+                Voltar para a Página Principal
+              </button>
             </div>
           </form>
-          <button
-            onClick={handleBackToHome}
-            className="w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg"
-          >
-            Voltar para a Página Principal
-          </button>
         </div>
 
         {/* Detalhes do Ingresso */}
