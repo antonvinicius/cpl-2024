@@ -36,7 +36,8 @@ export default function TicketList() {
 
     let query = supabase
       .from("tickets")
-      .select("*, church:churches(church_name)", { count: "exact" });
+      .select("*, church:churches(church_name)", { count: "exact" })
+      .order("payer_name");
 
     if (filterStatus) {
       query = query.eq("payment_status", filterStatus);

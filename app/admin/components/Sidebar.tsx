@@ -29,7 +29,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     >
       <div className="flex items-center mb-8">
         <HomeIcon className="h-8 w-8 text-white mr-2" />
-        <span className="text-2xl font-bold">Admin Panel</span>
+        <span className="text-2xl font-bold">Painel Admin</span>
       </div>
       <nav className="space-y-4">
         <button
