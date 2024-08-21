@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import heroImage from "/public/hero.jpg";
+import heroImage from "/public/banner.png";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -332,7 +332,7 @@ export default function CheckoutPage() {
                   autoClose: 2000,
                 },
               );
-              localStorage.setItem('payer_cpf', payer_cpf)
+              localStorage.setItem("payer_cpf", payer_cpf);
               setTimeout(() => {
                 router.push(`/my-tickets`);
               }, 2000);
@@ -390,7 +390,7 @@ export default function CheckoutPage() {
             <div className="w-full md:w-1/2 p-6 flex flex-col justify-between">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold mb-4">
-                  Congresso Louvor 2024
+                  CPL 2024
                 </h1>
                 <Image
                   src={heroImage}

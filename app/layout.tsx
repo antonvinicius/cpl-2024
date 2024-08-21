@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Congresso Louvor 2024",
-  description: "O mais aguardado congresso de louvor de Rondônia!",
+  title: "CPL 2024",
+  description: "Congresso Presbiteriano de Louvor 2024",
 };
 
 export default function RootLayout({
