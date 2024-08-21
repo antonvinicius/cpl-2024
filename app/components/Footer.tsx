@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 export default function Footer() {
   return (
@@ -8,8 +8,17 @@ export default function Footer() {
           © 2024 Congresso Louvor. Todos os direitos reservados.
         </p>
         <p className="text-gray-400 text-sm mt-2">
-          Contato: <a href="tel:+5511999999999" className="hover:text-white">+55 (11) 99999-9999</a> | 
-          Email: <a href="mailto:contato@congressolouvor.com" className="hover:text-white">contato@congressolouvor.com</a>
+          Contato:{" "}
+          <a href="tel:+5569999240900" className="hover:text-white">
+            +55 (69) 99924-0900
+          </a>{" "}
+          | Email:{" "}
+          <a
+            href="mailto:brenontenorio@yahoo.com.br"
+            className="hover:text-white"
+          >
+            brenontenorio@yahoo.com.br
+          </a>
         </p>
       </div>
     </footer>
