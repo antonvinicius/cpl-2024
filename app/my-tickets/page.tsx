@@ -181,7 +181,10 @@ export default function MyTickets() {
             <div>
               <h2 className="text-xl font-bold mb-6">Detalhes do Ingresso</h2>
               <p className="text-sm mb-4">Nome: {ticket.payer_name}</p>
-              <p className="text-sm mb-4">Igreja: {ticket.church_name}</p>
+              <p className="text-sm mb-4">
+                Local do evento: 4ª Igreja Presbiteriana de Ji-Paraná
+              </p>
+              <p className="text-sm mb-4">Data do evento: 02/11/2024</p>
               <div className="flex justify-center mt-6">
                 <Image
                   src={ticket.qr_code}
@@ -190,6 +193,9 @@ export default function MyTickets() {
                   alt="QR Code do Ingresso"
                 />
               </div>
+              <p className="text-sm mt-4 text-center text-orange-400">
+                Apresente este QR Code na entrada do evento
+              </p>
             </div>
           ) : (
             <p className="text-center text-gray-400 text-sm">

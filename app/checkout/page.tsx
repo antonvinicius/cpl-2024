@@ -403,6 +403,12 @@ export default function CheckoutPage() {
                   ensinamentos. Garanta seu ingresso e viva essa experiência de
                   louvor e crescimento espiritual.
                 </p>
+                <p className="text-gray-300 mb-4">
+                  Local do evento: 4ª Igreja Presbiteriana de Ji-Paraná
+                </p>
+                <p className="text-gray-300 mb-4">
+                  Data do evento: 02/11/2024
+                </p>
               </div>
             </div>
 
