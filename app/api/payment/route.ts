@@ -7,6 +7,27 @@ import { supabase } from "../supabase/client";
 import { AppError } from "../AppError";
 
 async function calculateAmount(church_id: number) {
+  const {data: church_db, error: church_db_error} = await supabase
+  .from('churches')
+  .select('*')
+  .eq('id', church_id)
+  .maybeSingle()
+
+  const { count: count_by_offer, error: error_by_offer } = await supabase
+  .from("tickets")
+  .select("id", { count: "exact" })
+  .eq("payment_status", "approved")
+  .eq("church_id", church_id);
+
+  let countOffer = 0
+
+  if (church_db) {
+    if (church_db.offer > 0) {
+      const discount = parseInt(process.env.TICKET_DISCOUNT)
+      countOffer = church_db.offer / discount
+    }
+  }
+  
   const { data: churches_db, error: churchesError } = await supabase
     .from("churches")
     .select("id")
@@ -16,7 +37,7 @@ async function calculateAmount(church_id: number) {
     .from("churches")
     .select("*");
 
-  if (churchesError || churchesError2) {
+  if (churchesError || churchesError2 || church_db_error || error_by_offer) {
     console.error("Erro ao buscar igrejas:", churchesError);
     throw new AppError("Erro ao buscar igrejas", 500);
   }
@@ -37,9 +58,9 @@ async function calculateAmount(church_id: number) {
   const ticketAmount = parseInt(process.env.TICKET_AMOUNT)
   const ticketDiscount = parseInt(process.env.TICKET_DISCOUNT)
   
-  if (count < parseInt(process.env.DISCOUNT_LIMIT)) {
+  if (count < parseInt(process.env.DISCOUNT_LIMIT) || countOffer > count_by_offer) {
     const church = churches.find((ch) => ch.id == church_id);
-    if (church?.has_discount) {
+    if (church?.has_discount || (church?.offer > 0 && countOffer > count_by_offer)) {
       return ticketAmount - ticketDiscount;
     } else {
       return ticketAmount;

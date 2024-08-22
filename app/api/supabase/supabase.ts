@@ -14,16 +14,19 @@ export type Database = {
           church_name: string
           has_discount: boolean
           id: number
+          offer: number
         }
         Insert: {
           church_name: string
           has_discount: boolean
           id?: number
+          offer?: number
         }
         Update: {
           church_name?: string
           has_discount?: boolean
           id?: number
+          offer?: number
         }
         Relationships: []
       }

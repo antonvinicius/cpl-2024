@@ -15,6 +15,7 @@ type Church = {
   id: number;
   church_name: string;
   has_discount: boolean;
+  offer: number;
 };
 
 export default function CheckoutPage() {
@@ -115,12 +116,32 @@ export default function CheckoutPage() {
       if (!value) return;
       setIsLoadingTotal(true);
 
+      const { data: church_db, error: church_db_error } = await supabase
+        .from("churches")
+        .select("*")
+        .eq("id", value)
+        .maybeSingle();
+
+      let countOffer = 0;
+
+      if (church_db) {
+        if (church_db.offer > 0) {
+          countOffer = church_db.offer / 25;
+        }
+      }
+
+      const { count: count_by_offer, error: error_by_offer } = await supabase
+        .from("tickets")
+        .select("id", { count: "exact" })
+        .eq("payment_status", "approved")
+        .eq("church_id", value);
+
       const { data: churches_db, error: churchesError } = await supabase
         .from("churches")
         .select("id")
         .eq("has_discount", true);
 
-      if (churchesError) {
+      if (churchesError || church_db_error || error_by_offer) {
         console.error("Erro ao buscar igrejas:", churchesError);
         return;
       }
@@ -138,9 +159,12 @@ export default function CheckoutPage() {
         return;
       }
 
-      if (count < parseInt(process.env.NEXT_PUBLIC_DISCOUNT_LIMIT)) {
+      if (
+        count < parseInt(process.env.NEXT_PUBLIC_DISCOUNT_LIMIT) ||
+        countOffer > count_by_offer
+      ) {
         const church = churches.find((ch) => ch.id === parseInt(value));
-        if (church?.has_discount) {
+        if (church?.has_discount || (church?.offer > 0 && countOffer > count_by_offer)) {
           setDiscount(25);
         } else {
           setDiscount(0);
@@ -406,9 +430,7 @@ export default function CheckoutPage() {
                 <p className="text-gray-300 mb-4">
                   Local do evento: 4ª Igreja Presbiteriana de Ji-Paraná
                 </p>
-                <p className="text-gray-300 mb-4">
-                  Data do evento: 02/11/2024
-                </p>
+                <p className="text-gray-300 mb-4">Data do evento: 02/11/2024</p>
               </div>
             </div>
 
